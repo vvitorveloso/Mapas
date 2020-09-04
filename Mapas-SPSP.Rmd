@@ -1,0 +1,172 @@
+---
+title: "Subprefeituras"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Subprefeituras
+
+
+```{r bibliotecas}
+library(tidyverse)
+library(sf)
+library(ggsflabel)
+library(gghighlight)
+```
+
+```{r download mapas}
+#Checa / cria dir
+if(!dir.exists("mapas")){
+  dir.create("mapas")
+  }
+
+#####Mapa Distritos
+#Faz o download caso não exista
+if(!file.exists("mapas/layerdistrito.zip")){
+  download.file("http://dados.prefeitura.sp.gov.br/dataset/af41e7c4-ae27-4bfc-9938-170151af7aee/resource/9e75c2f7-5729-4398-8a83-b4640f072b5d/download/layerdistrito.zip", "mapas/layerdistrito.zip")
+}
+#Extrai arquivos
+if(!file.exists("mapas/LAYER_DISTRITO/DEINFO_DISTRITO.shp")){
+  if(dir.exists("mapas/LAYER_DISTRITO")){
+    unlink("mapas/LAYER_DISTRITO",recursive=TRUE)
+  }
+    unzip("mapas/layerdistrito.zip", exdir="mapas/")
+}
+
+###################
+
+#####Mapa Subprefeituras
+#Faz o download caso não exista
+if(!file.exists("mapas/layersubprefeituras2013.rar")){
+  download.file("http://dados.prefeitura.sp.gov.br/dataset/6b33e08d-27df-4d9b-bfe4-5dbba38a19d3/resource/21d1a2f8-faa6-405e-bdba-4bdad7fec759/download/layersubprefeituras2013.rar", "mapas/layersubprefeituras2013.rar")
+}
+#Extrai arquivos
+
+if(!dir.exists("mapas/LAYER_SUBPREFEITURAS_2013")){}
+  
+if( Sys.which("7z") != ""){
+  if(!file.exists("mapas/LAYER_SUBPREFEITURAS_2013/DEINFO_SUBPREFEITURAS_2013.shp")){
+    if(dir.exists("mapas/LAYER_SUBPREFEITURAS_2013")){
+      unlink("mapas/LAYER_SUBPREFEITURAS_2013",recursive=TRUE)
+      }
+    system(paste("7z x ", "mapas/layersubprefeituras2013.rar -omapas/"))
+  }
+}
+
+
+
+#####Mapa Zonas
+#Faz o download caso não exista
+if(!file.exists("mapas/layerregiao52013.zip")){
+  download.file("http://dados.prefeitura.sp.gov.br/dataset/348743dd-e89a-45ec-80d9-5ef201611ace/resource/b5c64d3d-c985-4e93-b069-82c4bfdbae07/download/layerregiao52013.zip", "mapas/layerregiao52013.zip")
+}
+#Extrai arquivos
+if(!file.exists("mapas/LAYER_REGIAO5_2013/DEINFO_REGIAO5_2013.shp")){
+  if(dir.exists("mapas/LAYER_REGIAO5_2013")){
+    unlink("mapas/LAYER_REGIAO5_2013",recursive=TRUE)
+  }
+    unzip("mapas/layerregiao52013.zip", exdir="mapas/")
+}
+
+
+
+#####Mapa Zonas 8 divisões
+#Faz o download caso não exista
+if(!file.exists("mapas/layerregiao8.zip")){
+  download.file("http://dados.prefeitura.sp.gov.br/dataset/3a20b81c-6a4f-4b55-8f6a-b642cb57a788/resource/d8bd2b02-25f2-46de-9c9c-d81ecc7a763b/download/layerregiao8.zip","mapas/layerregiao8.zip")
+}
+#Extrai arquivos
+if(!file.exists("mapas/LAYER_REGIAO8/DEINFO_REGIAO8.shp")){
+  if(dir.exists("mapas/LAYER_REGIAO8")){
+    unlink("mapas/LAYER_REGIAO8",recursive=TRUE)
+  }
+  unzip("mapas/layerregiao8.zip", exdir="mapas/")
+}
+
+```
+
+```{r mapa distritos}
+mapa_distritos <- sf::st_read("mapas/LAYER_DISTRITO/DEINFO_DISTRITO.shp") %>%  st_transform(4326) 
+```
+
+```{r mapa subprefeituras}
+mapa_subprefeituras <- sf::st_read("mapas/LAYER_SUBPREFEITURAS_2013/DEINFO_SUBPREFEITURAS_2013.shp") %>% st_set_crs(5533) %>%  st_transform(4326) 
+```
+
+```{r mapa zonas}
+#mapa_zonas <- sf::st_read("mapas/LAYER_REGIAO5_2013/DEINFO_REGIAO5_2013.shp") %>% st_set_crs(5533) %>%  st_transform(4326) 
+```
+
+```{r mapa zona 8 divisoes}
+#mapa_zona8 <- sf::st_read("mapas/LAYER_REGIAO8/DEINFO_REGIAO8.shp") %>% st_set_crs(5533) %>%  st_transform(4326) 
+```
+
+
+```{r plotagem mapas}
+mapa_subprefeituras %>%
+  ggplot(aes()) +
+  geom_sf()
+```
+
+
+```{r plotagem nomes}
+mapa_subprefeituras %>%
+  ggplot(aes(fill=NOME)) +
+  geom_sf(lwd = 0)+
+#REMOVE GRIDELINES coord_sf(datum = NA)
+ coord_sf(datum = NA)+
+  gghighlight(NOME %in% c("PINHEIROS","BUTANTA","SE","30")) +
+  geom_sf_label_repel(aes(label = NOME), fun.geometry = sf::st_centroid,fill = "white")+
+  theme(
+    panel.ontop = TRUE,   ## Note: this is to make the panel grid visible in this example
+    panel.grid = element_blank(), 
+    #line = element_blank(), 
+    rect = element_blank(), 
+    #text = element_blank(), 
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank(),
+    plot.background = element_rect(fill = "white"))
+```
+```{r teste ponte jaguare}
+test_jagu <-  
+    data.frame("Longitude" =-46.733518,"Latitude"=-23.5446409)
+
+test_jagu <-
+ sf::st_as_sf(test_jagu, coords = c( 'Longitude','Latitude'),crs = st_crs(mapa_subprefeituras)) %>%
+  st_transform(4326)
+
+test_jagu %>%  st_transform(4326)
+
+mapa_subprefeituras %>%
+  filter(NOME %in% c("PINHEIROS","BUTANTA","SE","30","LAPA")) %>%
+
+  ggplot(aes(fill=NOME)) +
+  geom_sf(lwd = 0)+
+
+#REMOVE GRIDELINES coord_sf(datum = NA)
+ coord_sf(datum = NA)+
+  #gghighlight(NOME %in% c("PINHEIROS","BUTANTA","SE","30","LAPA")) +
+  geom_sf()+
+    geom_sf(color="red",data=test_jagu, fill="transparent",size=.1)+
+
+  geom_sf_label_repel(aes(label = NOME), fun.geometry = sf::st_centroid,fill = "white")
+```
+```{r test export kml}
+#first method
+sf::st_write(test_jagu, "/home/ochi/Documents/Projetos/Subprefeituras/test_jagu.kml",
+             driver = "kml",
+             delete_dsn = TRUE)
+sf::st_write(mapa_subprefeituras, "/home/ochi/Documents/Projetos/Subprefeituras/mapa_subprefeituras.kml",
+             driver = "kml",
+             delete_dsn = TRUE)
+```
+
