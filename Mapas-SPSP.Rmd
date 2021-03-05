@@ -145,7 +145,7 @@ mapa_zona8 %>%
       #             1 ,2  ,3 , 4, 5,  6 , 7 ,8
     coord_sf(xlim = c(-47.1, -46.2), ylim = c(-24, -23), expand = FALSE) +
     guides(fill=guide_legend(title="")) +
-ggsave(filename = paste0(script_dir,"/MarcoRegiõesSP.png"),width = 6.00, height = 3.33,dpi = 200 )
+ggsave(filename = paste0(script_dir,"/MarcoRegiõesSP.png"),width = 10.00, height =9,dpi = 100 )
 
   
   #1 Norte 1
